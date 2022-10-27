@@ -1,22 +1,22 @@
 ChromeDriverPath = "WebDriver\chromedriver.exe"
 
+import sys
 from selenium import webdriver
 from time import sleep
 from pyautogui import press, write
 from tkinter import *
 
-def start():
+def start(proxy_status, message):
 
     proxiesfile = open("proxies.txt", "r")
     proxies = [x[:-1] for x in proxiesfile.readlines()]
-    dm = msg.get(1.0, "end-1c")
 
     with open('usernames.txt', 'r') as usersfile:
 
-        count = 0
+        user_count = 0
 
         users_list = [x.split(',') for x in usersfile.readlines()]
-        proxy = proxies[count%len(proxies)].split(':')
+        proxy = proxies[user_count%len(proxies)].split(':')
 
         for user in users_list:
 
@@ -33,11 +33,17 @@ def start():
 
                 try:
 
-                    chrome_options = webdriver.ChromeOptions()
-                    chrome_options.add_argument('--proxy-server=%s' % proxy[0]+':'+proxy[1])
+                    if proxy_status=='Y':
 
-                    chrome = webdriver.Chrome(ChromeDriverPath, chrome_options=chrome_options)
-                    chrome.get("https://www.instagram.com/")
+                        chrome_options = webdriver.ChromeOptions()
+                        chrome_options.add_argument('--proxy-server=%s' % proxy[0]+':'+proxy[1])
+
+                        chrome = webdriver.Chrome(ChromeDriverPath, chrome_options=chrome_options)
+                        chrome.get("https://www.instagram.com/")
+
+                    else:
+                        chrome = webdriver.Chrome(ChromeDriverPath)
+                        chrome.get("https://www.instagram.com/")
 
                     sleep(5)
 
@@ -46,13 +52,7 @@ def start():
                     write(proxy[3])
                     press('enter')
 
-                    sleep(25)
-
-                    for _ in range(6):
-                        press('tab')
-                    press('enter')
-
-                    sleep(3)
+                    sleep(5)                        
 
                     username = chrome.find_element("xpath", '//*[@id="loginForm"]/div/div[1]/div/label/input')
                     password = chrome.find_element("xpath", '//*[@id="loginForm"]/div/div[2]/div/label/input')
@@ -66,47 +66,36 @@ def start():
 
                     for account in accounts_list:
 
-                        if '\n' in account[0]:
-                            chrome.get(f"https://www.instagram.com/{account[:-1]}")
-                            sleep(4)
-                        else:
-                            chrome.get(f"https://www.instagram.com/{account}")
-                            sleep(4)
+                        try:
+                            if '\n' in account[0]:
+                                chrome.get(f"https://www.instagram.com/{account[:-1]}")
+                                sleep(5)
+                            else:
+                                chrome.get(f"https://www.instagram.com/{account}")
+                                sleep(5)
 
-                        for _ in range(2):
-                            press('tab')
-                        press('enter')      
-                        sleep(2)    
+                            submit = chrome.find_element("xpath", "//button[@type='button']").click()
 
-                        for _ in range(2):
-                            press('tab')
-                        press('enter')
-                        sleep(2)
+                            sleep(10)
 
-                        write(f"{dm}")
-                        press('enter')
+                            write(f"{message}")
+                            press('enter')
+                            print(f"\n{name_val} sent message to {account}")
 
-                        console_data = console.get(1.0, "end-1c")
-                        console.delete(1.0,END)
-                        console.insert(1.0,f'{console_data}\n{name_val} sent message to {account}')
+                        except Exception as e:
+                            chrome.close()
+                            print(f"\nError: {e}")
+                            start()
 
                 except Exception as e:
                     chrome.close()
-                    console_data = console.get(1.0, "end-1c")
-                    console.delete(1.0,END)
-                    console.insert(1.0,f'{console_data}\nError: {name_val} not sent message to {account}')
+                    print(f"\nError: {e}")
 
-            count+=1
+            user_count+=1
+            chrome.close()
+            exit()
 
-app = Tk()
-app.geometry('700x700')
-app.title('InstaBot')
-console_label = Label(app, text = "Console").place(x = 100, y = 50)
-console = Text(app, height = 15, width = 50)
-console.place(x=100, y=75)
-msg_label = Label(app, text = "Message").place(x = 100, y = 425)
-msg = Text(app, height = 5, width = 50)
-msg.place(x=100, y=450)
-button = Button(app, text='Start', width=20, command = start)
-button.place(x=260, y=600)
-app.mainloop()
+proxy_status = input("Use Proxies(Y/n): ")
+message = input("Enter Message: ")
+
+start(proxy_status, message)
