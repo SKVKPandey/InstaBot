@@ -1,9 +1,10 @@
 ChromeDriverPath = "WebDriver\chromedriver.exe"
 
 import sys
-from selenium import webdriver
+from seleniumwire import webdriver
 from time import sleep
 from pyautogui import press, write
+from user_agent import generate_user_agent
 from tkinter import *
 
 def start(proxy_status, message):
@@ -41,16 +42,22 @@ def start(proxy_status, message):
                         chrome = webdriver.Chrome(ChromeDriverPath, chrome_options=chrome_options)
                         chrome.get("https://www.instagram.com/")
 
+                        sleep(5)
+
+                        write(proxy[2])
+                        press('tab')
+                        write(proxy[3])
+                        press('enter')
+
+                        sleep(30)
+
+                        for _ in range(6):
+                            press('tab')
+                        press('enter')
+
                     else:
                         chrome = webdriver.Chrome(ChromeDriverPath)
                         chrome.get("https://www.instagram.com/")
-
-                    sleep(5)
-
-                    write(proxy[2])
-                    press('tab')
-                    write(proxy[3])
-                    press('enter')
 
                     sleep(5)                        
 
