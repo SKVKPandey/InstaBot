@@ -1,22 +1,19 @@
 ChromeDriverPath = "WebDriver\chromedriver.exe"
 
-import sys
-from seleniumwire import webdriver
+from seleniumwire import webdriver as wd1
+from selenium import webdriver as wd2
 from time import sleep
-from pyautogui import press, write
-from user_agent import generate_user_agent
-from tkinter import *
 
-def start(proxy_status, message):
+def start(proxy_status, head_status, message):
 
     proxiesfile = open("proxies.txt", "r")
-    proxies = [x[:-1] for x in proxiesfile.readlines()]
+    proxies = list(set([x[:-1] for x in proxiesfile.readlines()]))
 
     with open('usernames.txt', 'r') as usersfile:
 
         user_count = 0
 
-        users_list = [x.split(',') for x in usersfile.readlines()]
+        users_list = [x.split(':') for x in usersfile.readlines()]
         proxy = proxies[user_count%len(proxies)].split(':')
 
         for user in users_list:
@@ -36,30 +33,38 @@ def start(proxy_status, message):
 
                     if proxy_status=='Y':
 
-                        chrome_options = webdriver.ChromeOptions()
-                        chrome_options.add_argument('--proxy-server=%s' % proxy[0]+':'+proxy[1])
+                        proxy_string = f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}"
 
-                        chrome = webdriver.Chrome(ChromeDriverPath, chrome_options=chrome_options)
+                        options = {
+                        'proxy': {
+                            'http': proxy_string,
+                            'https': proxy_string,
+                            'no_proxy': 'localhost,127.0.0.1'
+                            }
+                        }
+
+                        if head_status == 'Y':
+                            chrome_options = wd1.ChromeOptions()
+                            chrome_options.add_argument('--headless')
+                            chrome_options.add_argument('--no-sandbox')
+                            chrome_options.add_argument('--ignore-certificate-errors-spki-list')
+                            chrome_options.add_argument('--ignore-ssl-errors')
+                            chrome = wd1.Chrome('WebDriver\chromedriver.exe', options=chrome_options, seleniumwire_options=options)
+
+                        else:
+                            chrome = wd1.Chrome('WebDriver\chromedriver.exe', seleniumwire_options=options)
+
                         chrome.get("https://www.instagram.com/")
 
-                        sleep(5)
+                        sleep(3)
 
-                        write(proxy[2])
-                        press('tab')
-                        write(proxy[3])
-                        press('enter')
-
-                        sleep(30)
-
-                        for _ in range(6):
-                            press('tab')
-                        press('enter')
+                        submit = chrome.find_element("xpath", "//button[@tabindex='0']").click()
 
                     else:
-                        chrome = webdriver.Chrome(ChromeDriverPath)
+                        chrome = wd2.Chrome(ChromeDriverPath)
                         chrome.get("https://www.instagram.com/")
 
-                    sleep(5)                        
+                    sleep(8)                        
 
                     username = chrome.find_element("xpath", '//*[@id="loginForm"]/div/div[1]/div/label/input')
                     password = chrome.find_element("xpath", '//*[@id="loginForm"]/div/div[2]/div/label/input')
@@ -85,8 +90,9 @@ def start(proxy_status, message):
 
                             sleep(10)
 
-                            write(f"{message}")
-                            press('enter')
+                            dm = chrome.find_element("xpath", "//button[@tabindex='0']")
+                            dm.send_keys(f'''{message}\n''')
+
                             print(f"\n{name_val} sent message to {account}")
 
                         except Exception as e:
@@ -102,7 +108,9 @@ def start(proxy_status, message):
             chrome.close()
             exit()
 
-proxy_status = input("Use Proxies(Y/n): ")
-message = input("Enter Message: ")
 
-start(proxy_status, message)
+proxy_status = input("\nUse Proxies(Y/n): ")
+head_status = input("\nHeadless(Y/n): ")
+message = input("\nEnter Message: ")
+
+start(proxy_status, head_status, message)

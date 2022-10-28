@@ -3,81 +3,33 @@ import zipfile
 
 from selenium import webdriver
 
-PROXY_HOST = '185.199.231.45'  # rotating proxy or host
-PROXY_PORT = 8382 # port
-PROXY_USER = 'ltssmxdz' # username
-PROXY_PASS = 'hcp2jp56fbur' # password
+# PROXY_HOST = '185.199.231.45'  # rotating proxy or host
+# PROXY_PORT = 8382 # port
+# PROXY_USER = 'ltssmxdz' # username
+from seleniumwire import webdriver
+import time
 
-manifest_json = """
-{
-    "version": "1.0.0",
-    "manifest_version": 2,
-    "name": "Chrome Proxy",
-    "permissions": [
-        "proxy",
-        "tabs",
-        "unlimitedStorage",
-        "storage",
-        "<all_urls>",
-        "webRequest",
-        "webRequestBlocking"
-    ],
-    "background": {
-        "scripts": ["background.js"]
-    },
-    "minimum_chrome_version":"22.0.0"
+
+# replace 'user:pass@ip:port' with your information
+options = {
+	'proxy': {
+		'http': 'http://cwnwshek:gyb1tqnz68g3@144.168.217.88:8780',
+		'https': 'http://cwnwshek:gyb1tqnz68g3@144.168.217.88:8780',
+		'no_proxy': 'localhost,127.0.0.1'
+	}
 }
-"""
 
-background_js = """
-var config = {
-        mode: "fixed_servers",
-        rules: {
-        singleProxy: {
-            scheme: "http",
-            host: "%s",
-            port: parseInt(%s)
-        },
-        bypassList: ["localhost"]
-        }
-    };
-chrome.proxy.settings.set({value: config, scope: "regular"}, function() {});
-function callbackFn(details) {
-    return {
-        authCredentials: {
-            username: "%s",
-            password: "%s"
-        }
-    };
-}
-chrome.webRequest.onAuthRequired.addListener(
-            callbackFn,
-            {urls: ["<all_urls>"]},
-            ['blocking']
-);
-""" % (PROXY_HOST, PROXY_PORT, PROXY_USER, PROXY_PASS)
+# replace 'your_absolute_path' with your chrome binary's aboslute path
+driver = webdriver.Chrome('WebDriver\chromedriver.exe', seleniumwire_options=options)
 
-def get_chromedriver(use_proxy=False, user_agent=None):
-    path = os.path.dirname(os.path.abspath(__file__))
-    chrome_options = webdriver.ChromeOptions()
-    if use_proxy:
-        pluginfile = 'proxy_auth_plugin.zip'
+driver.get('https://www.instagram.com/')
 
-        with zipfile.ZipFile(pluginfile, 'w') as zp:
-            zp.writestr("manifest.json", manifest_json)
-            zp.writestr("background.js", background_js)
-        chrome_options.add_extension(pluginfile)
-    if user_agent:
-        chrome_options.add_argument('--user-agent=%s' % user_agent)
-    driver = webdriver.Chrome(
-        os.path.join(path, 'chromedriver'),
-        chrome_options=chrome_options)
-    return driver
+time.sleep(20)
 
-def main():
-    driver = get_chromedriver(use_proxy=True)
-    #driver.get('https://www.google.com/search?q=my+ip+address')
-    driver.get('https://httpbin.org/ip')
+submit = driver.find_element("xpath", "//button[@tabindex='0']").click()
 
-if __name__ == '__main__':
-    main()
+time.sleep(10)
+
+driver.quit()
+
+# <button class="_a9-- _a9_0" tabindex="0">Allow essential and optional cookies</button>
