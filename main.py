@@ -4,7 +4,7 @@ from seleniumwire import webdriver as wd1
 from selenium import webdriver as wd2
 from time import sleep
 
-def start(proxy_status, head_status, message):
+def start(proxy_status, message):
 
     proxiesfile = open("proxies.txt", "r")
     proxies = list(set([x[:-1] for x in proxiesfile.readlines()]))
@@ -43,16 +43,12 @@ def start(proxy_status, head_status, message):
                             }
                         }
 
-                        if head_status == 'Y':
-                            chrome_options = wd1.ChromeOptions()
-                            chrome_options.add_argument('--headless')
-                            chrome_options.add_argument('--no-sandbox')
-                            chrome_options.add_argument('--ignore-certificate-errors-spki-list')
-                            chrome_options.add_argument('--ignore-ssl-errors')
-                            chrome = wd1.Chrome('WebDriver\chromedriver.exe', options=chrome_options, seleniumwire_options=options)
-
-                        else:
-                            chrome = wd1.Chrome('WebDriver\chromedriver.exe', seleniumwire_options=options)
+                        chrome_options = wd1.ChromeOptions()
+                        chrome_options.add_argument('--headless')
+                        chrome_options.add_argument('--no-sandbox')
+                        chrome_options.add_argument('--ignore-certificate-errors-spki-list')
+                        chrome_options.add_argument('--ignore-ssl-errors')
+                        chrome = wd1.Chrome('WebDriver\chromedriver.exe', options=chrome_options, seleniumwire_options=options)
 
                         chrome.get("https://www.instagram.com/")
 
@@ -61,6 +57,12 @@ def start(proxy_status, head_status, message):
                         submit = chrome.find_element("xpath", "//button[@tabindex='0']").click()
 
                     else:
+                        chrome_options = wd2.ChromeOptions()
+                        chrome_options.add_argument('--headless')
+                        chrome_options.add_argument('--no-sandbox')
+                        chrome_options.add_argument('--ignore-certificate-errors-spki-list')
+                        chrome_options.add_argument('--ignore-ssl-errors')
+                        chrome = wd1.Chrome('WebDriver\chromedriver.exe', options=chrome_options, seleniumwire_options=options)
                         chrome = wd2.Chrome(ChromeDriverPath)
                         chrome.get("https://www.instagram.com/")
 
@@ -110,7 +112,6 @@ def start(proxy_status, head_status, message):
 
 
 proxy_status = input("\nUse Proxies(Y/n): ")
-head_status = input("\nHeadless(Y/n): ")
 message = input("\nEnter Message: ")
 
-start(proxy_status, head_status, message)
+start(proxy_status, message)
